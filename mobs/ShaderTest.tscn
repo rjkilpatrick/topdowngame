@@ -1,0 +1,76 @@
+[gd_scene load_steps=6 format=2]
+
+[sub_resource type="SphereMesh" id=1]
+
+[sub_resource type="Shader" id=2]
+code = "shader_type spatial;
+render_mode unshaded;
+
+uniform float bounce_amplitude : hint_range(0, 0.1);
+
+const float PI = 3.14159265358979323846;
+
+uniform sampler2D noise;
+
+varying float height;
+varying vec3 normal;
+
+vec3 toSpherical(vec3 cartesian) {
+	vec3 polar;
+	polar[0] = length(cartesian);
+	polar[1] = acos(cartesian.z / polar.x);
+	
+	if (cartesian.x >= 0.0){
+		polar[2] = atan(cartesian.y / cartesian.x);
+	} else {
+		polar[2] = atan(cartesian.y / cartesian.x) + PI;
+	}
+
+	return polar;
+}
+
+vec3 toCartesian(vec3 polar) {
+	vec3 cartesian;
+	cartesian[0] = polar[0] * sin(polar[1]) * cos(polar[2]);
+	cartesian[1] = polar[0] * sin(polar[1]) * sin(polar[2]);
+	cartesian[2] = polar[0] * cos(polar[1]);
+	return cartesian;
+}
+
+void vertex() {
+	vec3 spherical_vertex = toSpherical(VERTEX);
+	spherical_vertex[0] += 0.5 * cos(1.0 * TIME);
+	VERTEX = toCartesian(spherical_vertex);
+//	VERTEX.y += bounce_amplitude * cos(2.0 * TIME);
+	normal = NORMAL; // make the normal the color
+	
+	height = spherical_vertex[0] + texture(noise, spherical_vertex.yz).x;
+}
+
+void fragment() {
+	vec4 tex;
+	
+	if (height < 1.0) {
+		tex = vec4(0.0, 1.0, 0.0, 0.0)
+	} else {
+		tex = vec4(1.0, 0.0, 0.0, 0.0);
+	}
+	ALBEDO = tex.rgb;
+}"
+
+[sub_resource type="OpenSimplexNoise" id=4]
+
+[sub_resource type="NoiseTexture" id=5]
+noise = SubResource( 4 )
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
+shader_param/bounce_amplitude = 0.1
+shader_param/noise = SubResource( 5 )
+
+[node name="Spatial" type="Spatial"]
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.233123, 0.00559402, -0.00388074 )
+mesh = SubResource( 1 )
+material/0 = SubResource( 3 )

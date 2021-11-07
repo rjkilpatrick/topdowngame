@@ -1,0 +1,57 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://mobs/Mob.gd" type="Script" id=1]
+
+[sub_resource type="SpatialMaterial" id=4]
+albedo_color = Color( 0.152941, 0.360784, 1, 1 )
+
+[sub_resource type="SphereMesh" id=5]
+radius = 0.5
+height = 1.0
+radial_segments = 32
+rings = 16
+
+[sub_resource type="Shader" id=7]
+code = "shader_type spatial;
+//render_mode unshaded;
+
+void vertex() {
+	VERTEX.y += 0.02 * cos(2.0 * TIME);
+}
+
+void fragment() {
+	ALBEDO = vec3(0.0, 0.0, 1.0);
+}"
+
+[sub_resource type="ShaderMaterial" id=8]
+shader = SubResource( 7 )
+
+[sub_resource type="SphereShape" id=3]
+radius = 0.5
+
+[sub_resource type="CubeMesh" id=6]
+size = Vector3( 0.25, 0.25, 0.25 )
+
+[node name="Mob" type="KinematicBody"]
+script = ExtResource( 1 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0 )
+material_override = SubResource( 4 )
+mesh = SubResource( 5 )
+material/0 = SubResource( 8 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0 )
+shape = SubResource( 3 )
+
+[node name="UpdateTargetTimer" type="Timer" parent="."]
+autostart = true
+
+[node name="MeshInstance2" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.282976, 0.617821, -0.53892 )
+mesh = SubResource( 6 )
+material/0 = null
+
+[node name="EyeLine" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0 )
